@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.mediaservice">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -12,12 +17,20 @@
         <service
             android:name=".MediaService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true">
+<!--            <intent-filter>-->
+<!--                <action android:name="connect_to_aidl_service"/>-->
+<!--            </intent-filter>-->
+        </service>
 
         <activity
-            android:name=".MainActivity"
+            android:name="MainActivity"
             android:exported="true">
             <intent-filter>
+
+                <action android:name="com.example.mediaservice"/>
+                <action android:name="com.example.mediaservice.AIDL"/>
+
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -1,5 +1,6 @@
 // AidlInterface.aidl
 package AidlPackage;
+import java.util.List;
 
 // Declare any non-default types here with import statements
 
@@ -11,9 +12,8 @@ interface AidlInterface {
 
     int playNextSong();
     int playPreviousSong();
-    int playPauseSong();
-    int getAllAudio();
-
-
+    void playPauseSong();
+    //ArrayList<MusicFiles> getAllAudio(Context context);
+      void getAllAudio();
 
 }
