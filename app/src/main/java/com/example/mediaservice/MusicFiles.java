@@ -1,6 +1,7 @@
 package com.example.mediaservice;
 
 public class MusicFiles {
+    public boolean getAlbum;
     private String path, title, artist,album, duration;
 
     public MusicFiles(String path, String title, String artist, String album, String duration) {
@@ -45,12 +46,10 @@ public class MusicFiles {
         this.album = album;
     }
 
-    public String getDuration() {
-        return duration;
-    }
 
     public void setDuration(String duration) {
         this.duration = duration;
     }
 
+    public String getDuration() {return duration; }
 }

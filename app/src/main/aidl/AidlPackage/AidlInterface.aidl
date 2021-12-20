@@ -14,6 +14,10 @@ interface AidlInterface {
     int playPreviousSong();
     void playPauseSong();
     //ArrayList<MusicFiles> getAllAudio(Context context);
-      void getAllAudio();
+       List<String> getAllAudio();
+       String getAlbum(int position);
+       String getArtist(int position);
+       void playSong(int position);
+       List<String> getSongDetails(int position);
 
 }
