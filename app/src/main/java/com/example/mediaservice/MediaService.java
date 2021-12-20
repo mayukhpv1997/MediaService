@@ -17,6 +17,7 @@ import AidlPackage.AidlInterface;
 import android.media.MediaPlayer;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
@@ -35,6 +36,7 @@ public class MediaService extends Service {
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
 
         createNotificationChannel();
 
@@ -70,20 +72,25 @@ public class MediaService extends Service {
 
     }
     AidlInterface.Stub iBinder = new AidlInterface.Stub() {
-        @Override
-        public int playNextSong() throws RemoteException {
-            return 0;
-        }
 
         @Override
-        public int playPreviousSong() throws RemoteException {
-            return 0;
-        }
-
-        @Override
-        public void playPauseSong() throws RemoteException {
+        public boolean playPauseSong() throws RemoteException {
+            boolean playPauseStatus;
             System.out.println("call reached to service ");
-            //mediaPlayer.start();
+            if(mediaPlayer.isPlaying()) {
+                //btn_play_pause.setBackgroundResource(R.drawable.ic_baseline_play_arrow_24);
+                mediaPlayer.pause();
+                playPauseStatus=true;
+                System.out.println("Media player paused "+playPauseStatus);
+                //Toast.makeText(getApplicationContext(),"Media player paused",Toast.LENGTH_SHORT).show();
+            } else {
+                //btn_play_pause.setBackgroundResource(R.drawable.ic_baseline_pause_24);
+                mediaPlayer.start();
+                playPauseStatus=false;
+                System.out.println("Media player playing"+playPauseStatus);
+                //Toast.makeText(getApplicationContext(),"Media player playing",Toast.LENGTH_SHORT).show();
+            }
+            return  playPauseStatus;
 
         }
 
@@ -99,12 +106,6 @@ public class MediaService extends Service {
                 songTitle.add(musicFiles.get(i).getTitle());
                 System.out.println(songTitle);
             }
-//            ArrayList<Integer> songDuration = new ArrayList<>(musicFiles.size());
-//            for(int i=0;i<musicFiles.size();i++)
-//            {
-//                songDuration.add(musicFiles.get(i).getDuration());
-//            }
-            //return new List[]{songTitle,songDuration};
             return songTitle;
 
         }
@@ -124,7 +125,7 @@ public class MediaService extends Service {
             Uri uri = Uri.parse(String.valueOf(position));
             System.out.println("urii------------------"+uri);
             String path = musicFiles.get(position).getPath();
-            mediaPlayer=new MediaPlayer();
+           mediaPlayer=new MediaPlayer();
             try {
                 mediaPlayer.setDataSource(path);
             } catch (IllegalArgumentException e) {
@@ -155,10 +156,10 @@ public class MediaService extends Service {
         @Override
         public List<String> getSongDetails(int position) throws RemoteException {
             ArrayList<String> songDetails = new ArrayList<>(musicFiles.size());
+            songDetails.add(musicFiles.get(position).getTitle());
             songDetails.add(musicFiles.get(position).getAlbum());
             songDetails.add(musicFiles.get(position).getArtist());
-            songDetails.add(musicFiles.get(position).getDuration());
-
+            //songDetails.add(musicFiles.get(position).getDuration());
             System.out.println(songDetails);
             return songDetails;
         }
@@ -194,44 +195,5 @@ public class MediaService extends Service {
                 return tempAudioList;
 
         }
-
-
-
-
-
-
-//        @Override
-//        public ArrayList<MusicFiles> getAllAudio(Context context) throws RemoteException {
-//            ArrayList<MusicFiles> tempAudioList =new ArrayList<>();
-//            Uri uri= MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-//            String[] projections = {
-//                    MediaStore.Audio.Media.ALBUM,
-//                    MediaStore.Audio.Media.TITLE,
-//                    MediaStore.Audio.Media.DURATION,
-//                    MediaStore.Audio.Media.DATA,
-//                    MediaStore.Audio.Media.ARTIST,
-//            };
-//
-//
-//            Cursor cursor= context.getContentResolver().query(uri,projections,null,null, null);
-//            if(cursor!=null){
-//                while (cursor.moveToNext()){
-//                    String album = cursor.getString(0);
-//                    String title = cursor.getString(1);
-//                    String duration = cursor.getString(2);
-//                    String path = cursor.getString(3);
-//                    String artist = cursor.getString(4);
-//
-//                    MusicFiles musicFiles= new MusicFiles(path,title,artist,album,duration);
-//                    // take log.e for check
-//                    Log.e("Path : "+path, "Album: "+album);
-//                    tempAudioList.add(musicFiles);
-//                }
-//                cursor.close();
-//            }
-//            return tempAudioList;
-//
-//        }
-
     };
 }
