@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
@@ -121,9 +122,9 @@ public class MediaService extends Service {
         }
         @Override
         public void playSong(int position) throws RemoteException {
-            System.out.println(" playSong() - call reached to service "+position);
-            Uri uri = Uri.parse(String.valueOf(position));
-            System.out.println("urii------------------"+uri);
+            System.out.println(" playSong() - call reached to service,  position: "+position);
+            System.out.println(" currently playing song "+musicFiles.get(position).getTitle());
+
             String path = musicFiles.get(position).getPath();
            mediaPlayer=new MediaPlayer();
             try {
@@ -156,12 +157,38 @@ public class MediaService extends Service {
         @Override
         public List<String> getSongDetails(int position) throws RemoteException {
             ArrayList<String> songDetails = new ArrayList<>(musicFiles.size());
-            songDetails.add(musicFiles.get(position).getTitle());
-            songDetails.add(musicFiles.get(position).getAlbum());
-            songDetails.add(musicFiles.get(position).getArtist());
+            songDetails.add(musicFiles.get(position).getTitle());  //songDetails list index 0 - title
+            songDetails.add(musicFiles.get(position).getAlbum());  //songDetails list index 1 - album
+            songDetails.add(musicFiles.get(position).getArtist());  //songDetails list index 2 - artist
+            //songDetails.add(musicFiles.get(position).getPath());
+            songDetails.add(String.valueOf(musicFiles.size()));  //songDetails list index 3 - count of song files
+            songDetails.add(String.valueOf(mediaPlayer.getDuration()));  //songDetails list index 4 - duration of song
+
+            String uri =  musicFiles.get(position).getPath();
+            System.out.println("uri"+uri);
+            MediaMetadataRetriever retriever= new MediaMetadataRetriever();
+            retriever.setDataSource(uri);
+            byte[] art = retriever.getEmbeddedPicture();
+            System.out.println("byte  : "+art);
+            retriever.release();
+            if(art!=null) {
+                String str = new String(art);
+                //System.out.println("byte converted to string  : " + str);
+                songDetails.add(str); //songDetails list index 5 - cover art byte type converted to string
+            }
+
+
+            //songDetails.add(String.valueOf(musicFiles.size()));//songDetails list index 5
+            System.out.println("file size "+musicFiles.size());
             //songDetails.add(musicFiles.get(position).getDuration());
-            System.out.println(songDetails);
+            //System.out.println(songDetails);
             return songDetails;
+        }
+
+        @Override
+        public int getcposition() throws RemoteException {
+            System.out.println("getc position call reached to service ");
+            return mediaPlayer.getCurrentPosition();
         }
 
         public ArrayList<MusicFiles> getAllAudioFile(Context context) throws RemoteException {
