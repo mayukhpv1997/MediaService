@@ -8,6 +8,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
@@ -17,7 +18,6 @@ import AidlPackage.AidlInterface;
 import android.media.MediaPlayer;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
@@ -71,6 +71,7 @@ public class MediaService extends Service {
         return iBinder;
 
     }
+
     AidlInterface.Stub iBinder = new AidlInterface.Stub() {
 
         @Override
@@ -78,20 +79,17 @@ public class MediaService extends Service {
             boolean playPauseStatus;
             System.out.println("call reached to service ");
             if(mediaPlayer.isPlaying()) {
-                //btn_play_pause.setBackgroundResource(R.drawable.ic_baseline_play_arrow_24);
                 mediaPlayer.pause();
                 playPauseStatus=true;
                 System.out.println("Media player paused "+playPauseStatus);
                 //Toast.makeText(getApplicationContext(),"Media player paused",Toast.LENGTH_SHORT).show();
             } else {
-                //btn_play_pause.setBackgroundResource(R.drawable.ic_baseline_pause_24);
                 mediaPlayer.start();
                 playPauseStatus=false;
                 System.out.println("Media player playing"+playPauseStatus);
                 //Toast.makeText(getApplicationContext(),"Media player playing",Toast.LENGTH_SHORT).show();
             }
             return  playPauseStatus;
-
         }
 
         @Override
@@ -107,7 +105,6 @@ public class MediaService extends Service {
                 System.out.println(songTitle);
             }
             return songTitle;
-
         }
 
         @Override
@@ -121,11 +118,15 @@ public class MediaService extends Service {
         }
         @Override
         public void playSong(int position) throws RemoteException {
-            System.out.println(" playSong() - call reached to service "+position);
-            Uri uri = Uri.parse(String.valueOf(position));
-            System.out.println("urii------------------"+uri);
+            System.out.println(" playSong() - call reached to service,  position: "+position);
+            System.out.println(" currently playing song "+musicFiles.get(position).getTitle());
+            if(mediaPlayer != null) {
+                mediaPlayer.stop();
+                mediaPlayer.release();
+            }
+
             String path = musicFiles.get(position).getPath();
-           mediaPlayer=new MediaPlayer();
+            mediaPlayer=new MediaPlayer();
             try {
                 mediaPlayer.setDataSource(path);
             } catch (IllegalArgumentException e) {
@@ -156,12 +157,40 @@ public class MediaService extends Service {
         @Override
         public List<String> getSongDetails(int position) throws RemoteException {
             ArrayList<String> songDetails = new ArrayList<>(musicFiles.size());
-            songDetails.add(musicFiles.get(position).getTitle());
-            songDetails.add(musicFiles.get(position).getAlbum());
-            songDetails.add(musicFiles.get(position).getArtist());
+            songDetails.add(musicFiles.get(position).getTitle());  //songDetails list index 0 - title
+            songDetails.add(musicFiles.get(position).getAlbum());  //songDetails list index 1 - album
+            songDetails.add(musicFiles.get(position).getArtist());  //songDetails list index 2 - artist
+            //songDetails.add(musicFiles.get(position).getPath());
+            songDetails.add(String.valueOf(musicFiles.size()));  //songDetails list index 3 - count of song files
+            //int  timeDuration = mediaPlayer.getDuration();
+            //songDetails.add(convertTimeDuration(timeDuration));
+            songDetails.add(String.valueOf(mediaPlayer.getDuration()));  //songDetails list index 4 - duration of song
+            String uri =  musicFiles.get(position).getPath();
+            System.out.println("uri"+uri);
+            MediaMetadataRetriever retriever= new MediaMetadataRetriever();
+            retriever.setDataSource(uri);
+            byte[] art = retriever.getEmbeddedPicture();
+            System.out.println("byte  : "+art);
+            retriever.release();
+            if(art!=null) {
+                String str = new String(art);
+                //System.out.println("byte converted to string  : " + str);
+                songDetails.add(str); //songDetails list index 5 - cover art byte type converted to string
+            }
+            else
+            {
+                songDetails.add(null);
+            }
             //songDetails.add(musicFiles.get(position).getDuration());
-            System.out.println(songDetails);
+            System.out.println("songList   :    "+songDetails);
             return songDetails;
+        }
+
+        @Override
+        public int getcposition() throws RemoteException {
+            System.out.println("getc position call reached to service ");
+            System.out.println("current position : "+mediaPlayer.getCurrentPosition());
+            return mediaPlayer.getCurrentPosition();
         }
 
         public ArrayList<MusicFiles> getAllAudioFile(Context context) throws RemoteException {
@@ -196,4 +225,38 @@ public class MediaService extends Service {
 
         }
     };
+
+    private String convertTimeDuration(int timeDuration) {
+        int milliseconds = timeDuration;
+        String finalTimerString = "";
+        String secondsString = "";
+
+        // Convert total duration into time
+        int hours = (int) (milliseconds / (1000 * 60 * 60));
+        int minutes = (int) (milliseconds % (1000 * 60 * 60)) / (1000 * 60);
+        int seconds = (int) ((milliseconds % (1000 * 60 * 60)) % (1000 * 60) / 1000);
+
+        // Add hours if there
+        if (hours > 0) {
+            finalTimerString = hours + ":";
+        }
+
+        // Prepending 0 to seconds if it is one digit
+        if (seconds < 10) {
+            secondsString = "0" + seconds;
+        } else {
+            secondsString = "" + seconds;
+        }
+
+        finalTimerString = finalTimerString + minutes + ":" + secondsString;
+
+        //      return  String.format("%02d Min, %02d Sec",
+        //                TimeUnit.MILLISECONDS.toMinutes(milliseconds),
+        //                TimeUnit.MILLISECONDS.toSeconds(milliseconds) -
+        //                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(milliseconds)));
+
+        // return timer string
+        return finalTimerString;
+
+    }
 }
