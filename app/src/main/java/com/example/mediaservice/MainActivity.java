@@ -1,3 +1,10 @@
+/**
+ * @file    MainActivity.java
+ *
+ * @brief   permission related code
+ *
+ * @author  Mayukh P V
+ */
 package com.example.mediaservice;
 
 import androidx.annotation.NonNull;

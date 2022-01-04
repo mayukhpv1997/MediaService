@@ -1,3 +1,11 @@
+/**
+ * @file    MusicFiles.java
+ *
+ * @brief   to get music file details
+ *
+ * @author  Mayukh P V
+ */
+
 package com.example.mediaservice;
 
 public class MusicFiles {

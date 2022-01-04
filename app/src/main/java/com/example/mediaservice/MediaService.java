@@ -1,3 +1,11 @@
+/**
+ * @file    MediaService.java
+ *
+ * @brief   MediaService class - fetching  mp3 files & media player controls
+ *
+ * @author  Mayukh P V
+ */
+
 package com.example.mediaservice;
 
 import android.app.Notification;
@@ -32,12 +40,13 @@ public class MediaService extends Service {
     public static final int REQUEST_CODE = 1;
     static MediaPlayer mediaPlayer;
     static ArrayList<MusicFiles> musicFiles;
+
     public MediaService() {
     }
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
 
         createNotificationChannel();
 
@@ -74,6 +83,7 @@ public class MediaService extends Service {
     }
     AidlInterface.Stub iBinder = new AidlInterface.Stub() {
 
+        //play/pause the media player on play/pause button click
         @Override
         public boolean playPauseSong() throws RemoteException {
             boolean playPauseStatus;
@@ -91,10 +101,11 @@ public class MediaService extends Service {
                 System.out.println("Media player playing"+playPauseStatus);
                 //Toast.makeText(getApplicationContext(),"Media player playing",Toast.LENGTH_SHORT).show();
             }
-            return  playPauseStatus;
+            return  playPauseStatus; //to notify media player playing status to HMI
 
         }
 
+        //get title of all mp3 files to display on song list fragment in HMI
         @Override
         public List<String> getAllAudio() throws RemoteException {
             System.out.println("Entered int  to getAllAudio");
@@ -111,25 +122,17 @@ public class MediaService extends Service {
 
         }
 
-        @Override
-        public String getAlbum(int position) throws RemoteException {
-            return null;
-        }
 
-        @Override
-        public String getArtist(int position) throws RemoteException {
-            return null;
-        }
+        //plays the selected song
         @Override
         public void playSong(int position) throws RemoteException {
             System.out.println(" playSong() - call reached to service,  position: "+position);
-            System.out.println(" currently playing song "+musicFiles.get(position).getTitle());
+            System.out.println(" currently playing song : "+musicFiles.get(position).getTitle());
 
             if(mediaPlayer != null) {
                 mediaPlayer.stop();
                 mediaPlayer.release();
             }
-
             String path = musicFiles.get(position).getPath();
             mediaPlayer=new MediaPlayer();
             try {
@@ -159,6 +162,7 @@ public class MediaService extends Service {
             }
         }
 
+        //fetch all the details of selected song from HMI as list
         @Override
         public List<String> getSongDetails(int position) throws RemoteException {
             ArrayList<String> songDetails = new ArrayList<>(musicFiles.size());
@@ -170,7 +174,7 @@ public class MediaService extends Service {
             songDetails.add(String.valueOf(mediaPlayer.getDuration()));  //songDetails list index 4 - duration of song
 
             String uri =  musicFiles.get(position).getPath();
-            System.out.println("uri"+uri);
+            //System.out.println("uri"+uri);
             MediaMetadataRetriever retriever= new MediaMetadataRetriever();
             retriever.setDataSource(uri);
             byte[] art = retriever.getEmbeddedPicture();
@@ -181,18 +185,29 @@ public class MediaService extends Service {
                 //System.out.println("byte converted to string  : " + str);
                 songDetails.add(str); //songDetails list index 5 - cover art byte type converted to string
             }
-
+            else
+            {
+                songDetails.add(null);
+            }
             //songDetails.add(String.valueOf(musicFiles.size()));//songDetails list index 5
-            System.out.println("file size "+musicFiles.size());
+            System.out.println("Total number of mp3 files "+musicFiles.size());
             return songDetails;
         }
 
         @Override
         public int getcposition() throws RemoteException {
-            System.out.println("getc position call reached to service ");
+            System.out.println("getcposition call reached to service ");
             return mediaPlayer.getCurrentPosition();
         }
 
+        @Override
+        public void seekToCall(int progress) throws RemoteException {
+            mediaPlayer.seekTo(progress);//change media player position according to seekbar change
+            System.out.println("seek bar progress listener reached to service");
+
+        }
+
+        //fetch all mp3 files and its details from the device/sdcard
         public ArrayList<MusicFiles> getAllAudioFile(Context context) throws RemoteException {
             System.out.println(" getAllAudio() call reached to service ");
             ArrayList<MusicFiles> tempAudioList = new ArrayList<>();
